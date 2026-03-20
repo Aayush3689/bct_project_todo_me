@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-change-this-in-production-xk2#p9@mz!q$v7&lw'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']   # later you can put your render URL
+ALLOWED_HOSTS = ['*']   # later replace with your Render URL
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -16,6 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # your apps
     'accounts',
     'tasks',
 ]
@@ -30,7 +32,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'todo_project.urls'
+# ✅ CHANGED PROJECT NAME HERE
+ROOT_URLCONF = 'bct_todo_project.urls'
 
 TEMPLATES = [
     {
@@ -49,7 +52,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'todo_project.wsgi.application'
+# ✅ CHANGED PROJECT NAME HERE
+WSGI_APPLICATION = 'bct_todo_project.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -72,11 +76,11 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ✅ STATIC FILES (FIXED)
+# ✅ STATIC FILES
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# ❌ DO NOT USE THIS NOW
+# ❌ DO NOT USE NOW (keep commented)
 # STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # ✅ MEDIA FILES
