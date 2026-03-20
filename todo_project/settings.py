@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-change-this-in-production-xk2#p9@mz!q$v7&lw'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']   # later you can put your render URL
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -72,9 +72,14 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# ✅ STATIC FILES (FIXED)
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# ❌ DO NOT USE THIS NOW
+# STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# ✅ MEDIA FILES
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
