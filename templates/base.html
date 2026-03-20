@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Todo{% endblock %} — Taskr</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            /* New color palette — deep teal + warm amber */
+            --bg:             #f5f4f0;
+            --surface:        #ffffff;
+            --surface-2:      #efefeb;
+            --border:         #e2e0d8;
+            --border-focus:   #b0ad9e;
+
+            --text-primary:   #1c1917;
+            --text-secondary: #6b6560;
+            --text-muted:     #a8a49c;
+
+            --accent:         #0d7377;   /* teal */
+            --accent-hover:   #095f62;
+            --accent-light:   #e0f4f4;
+            --accent-mid:     #0d737720;
+
+            --logo-a:         #e07b39;   /* warm orange — logo "a" */
+            --logo-b:         #0d7377;   /* teal — logo "sk" */
+
+            --danger:         #c0392b;
+            --danger-light:   #fdf0ee;
+            --success:        #1a7f5a;
+            --success-light:  #e8f8f1;
+            --warn:           #b45309;
+            --warn-light:     #fef3e2;
+
+            --nav-bg:         #1c1917;   /* dark chocolate navbar */
+            --nav-text:       #d6d2c8;
+            --nav-muted:      #7a746c;
+            --nav-active-bg:  #0d7377;
+            --nav-active-txt: #ffffff;
+            --nav-hover-bg:   #2e2a26;
+
+            --radius:         8px;
+            --radius-lg:      12px;
+            --shadow-sm:      0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:      0 4px 16px rgba(0,0,0,0.10);
+        }
+
+        html, body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh;
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* ════════════════════════════
+           TOP NAV  (dark chocolate)
+        ════════════════════════════ */
+        .topnav {
+            background: var(--nav-bg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+
+        .topnav-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Logo */
+        .topnav .logo {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+            text-decoration: none;
+            flex-shrink: 0;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .logo-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            background: var(--accent);
+            border-radius: 7px;
+            margin-right: 7px;
+        }
+
+        .logo-t { color: var(--logo-a); }
+        .logo-rest { color: #ffffff; }
+
+        /* Nav links */
+        .topnav nav {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .topnav nav a {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--nav-text);
+            text-decoration: none;
+            padding: 7px 13px;
+            border-radius: var(--radius);
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+
+        .topnav nav a svg {
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        .topnav nav a:hover {
+            background: var(--nav-hover-bg);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .topnav nav a:hover svg { opacity: 1; }
+
+        .topnav nav a.active {
+            background: var(--nav-active-bg);
+            color: var(--nav-active-txt);
+            font-weight: 600;
+        }
+
+        .topnav nav a.active svg { opacity: 1; }
+
+        /* Nav right */
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: var(--nav-text);
+            font-weight: 500;
+        }
+
+        .avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--nav-muted);
+            display: block;
+            transition: border-color 0.15s;
+        }
+
+        .avatar:hover { border-color: var(--accent); }
+
+        .avatar-placeholder {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none;
+            border: 2px solid transparent;
+            transition: border-color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .avatar-placeholder:hover { border-color: var(--logo-a); }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--nav-muted);
+            padding: 6px 11px;
+            border-radius: var(--radius);
+            border: 1px solid #3a3530;
+            transition: all 0.15s;
+            background: transparent;
+            text-decoration: none;
+        }
+
+        .btn-logout:hover {
+            border-color: var(--danger);
+            color: #ff9088;
+            background: rgba(192,57,43,0.12);
+            text-decoration: none;
+        }
+
+        /* ════════════════════════════
+           PAGE
+        ════════════════════════════ */
+        .page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 24px 70px;
+        }
+
+        .page-header { margin-bottom: 28px; }
+
+        .page-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .page-header p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ════════════════════════════
+           FLASH
+        ════════════════════════════ */
+        .flash {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            margin-bottom: 20px;
+            background: var(--success-light);
+            color: var(--success);
+            border: 1px solid #a8e6ce;
+        }
+
+        /* ════════════════════════════
+           ADD TASK BAR
+        ════════════════════════════ */
+        .add-task-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .add-task-bar input[type="text"] {
+            flex: 1;
+            padding: 11px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 15px;
+            color: var(--text-primary);
+            background: var(--surface);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .add-task-bar input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-mid);
+        }
+
+        .add-task-bar input::placeholder { color: var(--text-muted); }
+
+        /* ════════════════════════════
+           BUTTONS
+        ════════════════════════════ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            border: 1.5px solid transparent;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .btn-ghost {
+            background: var(--surface);
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+            border-color: var(--border-focus);
+            text-decoration: none;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.15s;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-icon:hover        { background: var(--danger-light);  color: var(--danger); }
+        .btn-icon.restore:hover{ background: var(--success-light); color: var(--success); }
+        .btn-icon.complete:hover{ background: var(--success-light);color: var(--success); }
+        .btn-icon.undo:hover   { background: var(--accent-light);  color: var(--accent); }
+
+        /* ════════════════════════════
+           TASK LIST
+        ════════════════════════════ */
+        .task-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .task-list { list-style: none; }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+            background: var(--surface);
+        }
+
+        .task-item:last-child { border-bottom: none; }
+        .task-item:hover { background: #fafaf7; }
+
+        .task-circle {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border-focus);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .task-circle.done {
+            background: var(--success);
+            border-color: var(--success);
+            position: relative;
+        }
+
+        .task-circle.done::after {
+            content: '';
+            position: absolute;
+            left: 4px; top: 1px;
+            width: 6px; height: 10px;
+            border: 2px solid white;
+            border-top: none;
+            border-left: none;
+            transform: rotate(45deg);
+        }
+
+        .task-title-text {
+            flex: 1;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .task-title-text.done    { text-decoration: line-through; color: var(--text-muted); }
+        .task-title-text.trashed { color: var(--text-muted); }
+
+        .task-date {
+            font-size: 12px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .task-item:hover .task-actions { opacity: 1; }
+
+        .task-empty {
+            padding: 56px 24px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .task-empty .empty-icon { font-size: 32px; margin-bottom: 10px; }
+        .task-empty p { font-size: 14px; }
+
+        /* Stats chips */
+        .stats-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stat-chip b { color: var(--text-primary); }
+
+        /* ════════════════════════════
+           FORMS
+        ════════════════════════════ */
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 7px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 15px;
+            color: var(--text-primary);
+            background: var(--surface);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-mid);
+        }
+
+        .form-group input[type="file"] {
+            padding: 8px 14px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-error {
+            font-size: 13px;
+            color: var(--danger);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-error-box {
+            background: var(--danger-light);
+            border: 1.5px solid #f0c0bc;
+            border-radius: var(--radius);
+            padding: 11px 14px;
+            font-size: 14px;
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+
+        /* ════════════════════════════
+           AUTH
+        ════════════════════════════ */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: var(--bg);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 40px 36px;
+        }
+
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .auth-logo .logo-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .auth-footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ════════════════════════════
+           PROFILE
+        ════════════════════════════ */
+        .profile-layout {
+            display: grid;
+            grid-template-columns: 210px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .profile-aside {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px 18px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-aside img {
+            width: 84px; height: 84px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--border);
+            display: block;
+            margin: 0 auto 14px;
+        }
+
+        .profile-aside .p-initials {
+            width: 84px; height: 84px;
+            border-radius: 50%;
+            background: var(--accent-light);
+            color: var(--accent);
+            font-size: 28px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px;
+        }
+
+        .profile-aside .p-name  { font-weight: 700; font-size: 15px; }
+        .profile-aside .p-email { font-size: 13px; color: var(--text-muted); margin-top: 3px; word-break: break-all; }
+        .profile-aside .p-since { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+
+        .profile-form-box {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-form-box h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 22px;
+            color: var(--text-primary);
+        }
+
+        /* ════════════════════════════
+           MOBILE BOTTOM NAV
+        ════════════════════════════ */
+        .bottom-nav { display: none; }
+
+        /* ════════════════════════════
+           RESPONSIVE — TABLET
+        ════════════════════════════ */
+        @media (max-width: 768px) {
+            .topnav-inner  { padding: 0 16px; gap: 6px; }
+            .page          { padding: 28px 16px 52px; }
+            .profile-layout{ grid-template-columns: 1fr; }
+            .user-name     { display: none; }
+            .page-header h1{ font-size: 22px; }
+        }
+
+        /* ════════════════════════════
+           RESPONSIVE — MOBILE
+        ════════════════════════════ */
+        @media (max-width: 480px) {
+            .topnav nav    { display: none; }
+            .topnav-inner  { height: 52px; padding: 0 14px; gap: 6px; }
+            .topnav .logo  { font-size: 17px; margin-right: 0; }
+            .logo-icon     { width: 24px; height: 24px; margin-right: 5px; }
+            .btn-logout    { font-size: 12px; padding: 5px 9px; }
+
+            .page          { padding: 18px 14px 90px; }
+            .page-header   { margin-bottom: 20px; }
+            .page-header h1{ font-size: 21px; }
+            .page-header p { font-size: 14px; }
+
+            .add-task-bar  { gap: 8px; }
+            .add-task-bar input[type="text"] { font-size: 15px; padding: 11px 13px; }
+            .add-task-bar .btn { padding: 11px 14px; }
+
+            .task-item     { padding: 14px 13px; gap: 11px; }
+            .task-title-text{ font-size: 15px; }
+            .task-actions  { opacity: 1; }
+            .btn-icon      { padding: 7px 9px; }
+            .task-circle   { width: 22px; height: 22px; }
+            .task-circle.done::after { left: 4px; top: 1px; width: 6px; height: 11px; }
+
+            .auth-page     { padding: 20px; padding-top: 52px; align-items: flex-start; }
+            .auth-card     { padding: 30px 22px; }
+            .auth-logo     { font-size: 20px; }
+
+            .profile-layout{ gap: 14px; }
+            .profile-aside {
+                display: flex; align-items: center;
+                gap: 16px; padding: 18px; text-align: left;
+            }
+            .profile-aside img,
+            .profile-aside .p-initials {
+                margin: 0; flex-shrink: 0;
+                width: 62px; height: 62px; font-size: 22px;
+            }
+            .profile-form-box { padding: 22px 18px; }
+
+            /* Bottom nav */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                background: var(--nav-bg);
+                border-top: 1px solid #2e2a26;
+                z-index: 200;
+                height: 62px;
+            }
+
+            .bottom-nav a {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                font-size: 10px;
+                font-weight: 500;
+                color: var(--nav-muted);
+                text-decoration: none;
+                padding: 8px 4px;
+                transition: color 0.15s, background 0.15s;
+            }
+
+            .bottom-nav a svg { opacity: 0.6; transition: opacity 0.15s; }
+
+            .bottom-nav a.active {
+                color: var(--accent);
+            }
+
+            .bottom-nav a.active svg { opacity: 1; }
+
+            .bottom-nav a:hover {
+                background: var(--nav-hover-bg);
+                color: #fff;
+                text-decoration: none;
+            }
+
+            .bottom-nav a:hover svg { opacity: 1; }
+        }
+
+        @media (max-width: 360px) {
+            .topnav-inner  { padding: 0 10px; }
+            .page          { padding: 14px 10px 90px; }
+            .task-item     { padding: 12px 10px; }
+            .auth-card     { padding: 24px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="topnav">
+    <div class="topnav-inner">
+
+        <a class="logo" href="{% url 'task_list' %}">
+            <span class="logo-icon">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8l3.5 3.5L13 4.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span class="logo-t">Task</span><span class="logo-rest">r</span>
+        </a>
+
+        <nav>
+            <a href="{% url 'task_list' %}" {% if request.resolver_match.url_name == 'task_list' %}class="active"{% endif %}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Active
+            </a>
+            <a href="{% url 'completed_tasks' %}" {% if request.resolver_match.url_name == 'completed_tasks' %}class="active"{% endif %}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Completed
+            </a>
+            <a href="{% url 'deleted_tasks' %}" {% if request.resolver_match.url_name == 'deleted_tasks' %}class="active"{% endif %}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+                Trash
+            </a>
+        </nav>
+
+        <div class="nav-right">
+            <a href="{% url 'profile' %}" style="text-decoration:none;">
+                {% if user.profile_picture %}
+                    <img class="avatar" src="{{ user.profile_picture.url }}" alt="">
+                {% else %}
+                    <div class="avatar-placeholder">{{ user.get_display_name|slice:":1"|upper }}</div>
+                {% endif %}
+            </a>
+            <span class="user-name">{{ user.get_display_name }}</span>
+            <a class="btn-logout" href="{% url 'logout' %}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Log out
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile bottom nav -->
+<div class="bottom-nav">
+    <a href="{% url 'task_list' %}" {% if request.resolver_match.url_name == 'task_list' %}class="active"{% endif %}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Active
+    </a>
+    <a href="{% url 'completed_tasks' %}" {% if request.resolver_match.url_name == 'completed_tasks' %}class="active"{% endif %}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        Done
+    </a>
+    <a href="{% url 'deleted_tasks' %}" {% if request.resolver_match.url_name == 'deleted_tasks' %}class="active"{% endif %}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
+        </svg>
+        Trash
+    </a>
+    <a href="{% url 'profile' %}" {% if request.resolver_match.url_name == 'profile' %}class="active"{% endif %}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        Profile
+    </a>
+</div>
+{% endif %}
+
+<main>
+    {% if messages %}
+    <div style="max-width:900px;margin:16px auto 0;padding:0 24px;">
+        {% for message in messages %}
+        <div class="flash">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

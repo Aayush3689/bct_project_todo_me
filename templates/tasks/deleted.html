@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Trash{% endblock %}
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1>Trash</h1>
+        <p>Deleted tasks — restore or permanently erase them.</p>
+    </div>
+
+    {% if tasks %}
+    <div class="stats-row">
+        <div class="stat-chip">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            </svg>
+            <b>{{ tasks|length }}</b> in trash
+        </div>
+    </div>
+    <div class="task-card">
+        <ul class="task-list">
+            {% for task in tasks %}
+            <li class="task-item">
+                <div class="task-circle"></div>
+                <span class="task-title-text trashed">{{ task.title }}</span>
+                <span class="task-date">{{ task.created_at|date:"d M" }}</span>
+                <div class="task-actions">
+                    <form method="post" action="{% url 'restore_task' task.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-icon restore" title="Restore task">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+                            </svg>
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'permanent_delete' task.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-icon" title="Delete permanently"
+                            onclick="return confirm('Permanently delete this task?')">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div class="task-card">
+        <div class="task-empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3;display:block;margin:0 auto 12px;">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+            <p>Trash is empty.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
